@@ -35,8 +35,8 @@ object Unfiltered extends Build {
   val buildSettings = Defaults.defaultSettings ++ Seq(
     organization := "net.databinder",
     name := "Unfiltered",
-    version := "0.4.2-SNAPSHOT",
-    crossScalaVersions := Seq("2.8.0", "2.8.1", "2.9.0", "2.9.0-1", "2.9.1.RC1"),
+    version := "0.5.0",
+    crossScalaVersions := Seq("2.8.0", "2.8.1", "2.9.0", "2.9.0-1", "2.9.1"),
     scalaVersion := "2.8.1",
     publishTo := Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/"),
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
@@ -104,7 +104,9 @@ object Unfiltered extends Build {
   lazy val util =
     Project(id("utils"), file("util"),
           settings = buildSettings ++ Seq(
-            name := "Unfiltered Utils"))
+            name := "Unfiltered Utils",
+            // https://github.com/harrah/xsbt/issues/76
+            publishArtifact in packageDoc := false))
 
   lazy val jetty =
     Project(id("jetty"), file("jetty"),
@@ -138,7 +140,7 @@ object Unfiltered extends Build {
               unmanagedClasspath in (local("netty"), Test) <++=
                 (fullClasspath in (local("spec"), Compile)).identity,
               libraryDependencies <++= scalaVersion(v =>
-                ("org.jboss.netty" % "netty" % "3.2.4.Final" withSources()) +:
+                ("org.jboss.netty" % "netty" % "3.2.5.Final" withSources()) +:
                 integrationTestDeps(v)
               )
             )) dependsOn(library)
@@ -150,7 +152,7 @@ object Unfiltered extends Build {
               libraryDependencies <++= scalaVersion { v =>
                 specsDep(v) :: dispatchDeps
               }
-            )) dependsOn(jetty, nettyServer)
+            )) dependsOn(filters, jetty, nettyServer)
 
   lazy val scalaTestHelpers =
     Project(id("scalatest"), file("scalatest"),
@@ -184,7 +186,7 @@ object Unfiltered extends Build {
               libraryDependencies <++= scalaVersion { v =>
                 val scalateVersion = v match {
                   case "2.8.0" | "2.8.1" => "1.4.1"
-                  case _ => "1.5.0"
+                  case _ => "1.5.2"
                 }
                 Seq(
                   "org.fusesource.scalate" % "scalate-core" % scalateVersion,

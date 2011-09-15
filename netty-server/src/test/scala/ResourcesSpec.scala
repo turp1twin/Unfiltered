@@ -20,7 +20,7 @@ object ResourcesSpec extends unfiltered.spec.netty.Served {
      }, scala.util.control.Exception.nothingCatcher)
    }
 
-   def setup = NHttp(_).resources(getClass().getResource("/files/"), passOnFail = false)
+   def setup = _.resources(getClass().getResource("/files/"), passOnFail = false)
    "A resource server" should {
      "respond with a valid file" in {
        http(host / "foo.css" as_str) must_==("* { margin:0; }")
@@ -41,6 +41,9 @@ object ResourcesSpec extends unfiltered.spec.netty.Served {
        headers must haveKey("Content-Length")
        headers must haveKey("Content-Type")
        headers must haveKey("Cache-Control")
+     }
+     "respond sith Forbidden (403) for requests with questionable paths" in {
+        xhttp(host / ".." / ".." statuscode) must be_==(403)
      }
      "respond with NotFound (404) for requests for non-existant files" in {
        xhttp(host / "foo.bar" statuscode) must be_==(404)
