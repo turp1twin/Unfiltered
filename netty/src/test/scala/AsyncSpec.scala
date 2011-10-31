@@ -10,7 +10,7 @@ object AsyncSpec extends unfiltered.spec.netty.Served {
 
   object APlan extends async.Plan with ServerErrorResponse {
     def intent = {
-      case GET(UFPath("/pass")) => Pass
+      case GET(req) & UFPath("/pass") => Pass
       case req@GET(UFPath("/")) =>
         req.respond(ResponseString("test") ~> Ok)
       case req@POST(UFPath("/")) & Params(params) =>
@@ -18,7 +18,7 @@ object AsyncSpec extends unfiltered.spec.netty.Served {
     }
   }
 
-  def setup = _.handler(APlan).handler(planify {
+  def setup = _.chunked().handler(APlan).handler(planify {
     case GET(UFPath("/pass")) => ResponseString("pass") ~> Ok
   })
 
