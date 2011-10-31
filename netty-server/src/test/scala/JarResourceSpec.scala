@@ -1,6 +1,5 @@
 package unfiltered.netty
 
-import org.specs._
 import java.net.URL
 
 /**
@@ -9,7 +8,6 @@ import java.net.URL
 object JarResourceSpec extends unfiltered.spec.netty.Served {
 
   import dispatch._
-  import unfiltered.netty.{Http => NHttp}
 
   // todo: roll this into the base spec helper
   def xhttp[T](handler: dispatch.Handler[T]): T = {
