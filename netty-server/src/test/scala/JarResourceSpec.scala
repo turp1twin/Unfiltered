@@ -57,6 +57,9 @@ object JarResourceSpec extends unfiltered.spec.netty.Served {
       headers must haveKey("Content-Type")
       headers must haveKey("Cache-Control")
     }
+    "respond sith Forbidden (403) for requests with questionable paths" in {
+      xhttp(host / ".." / ".." statuscode) must be_==(403)
+    }
     "respond with NotFound (404) for requests for non-existant files" in {
       xhttp(host / "assets" / "foo.bar" statuscode) must be_==(404)
     }
@@ -75,9 +78,7 @@ object JarResourceSpec extends unfiltered.spec.netty.Served {
       cal.add(Calendar.MONTH, +1)
       val ifmodsince = Map("If-Modified-Since" -> Dates.format(cal.getTime))
       xhttp(host / "assets" /"foo.css" <:< ifmodsince statuscode) must be_==(304)
-      xhttp(host / "assets" / "foo.css" <:< ifmodsince >:> {
-        h => h
-      }) must notHavePair("Connection" -> "keep-alive")
+      xhttp(host / "assets" / "foo.css" <:< ifmodsince >:> { h => h }) must notHavePair("Connection" -> "keep-alive")
     }
   }
 }

@@ -10,7 +10,7 @@ import org.jboss.netty.channel._
 object Mimes {
   import javax.activation.MimetypesFileTypeMap
 
-  lazy val underlying = new MimetypesFileTypeMap(getClass().getResourceAsStream("/mime.types"))
+  lazy val underlying = new MimetypesFileTypeMap(getClass.getResourceAsStream("/mime.types"))
   def apply(path: String) = underlying.getContentType(path)
 }
 
@@ -32,8 +32,7 @@ object Dates {
  */
 object Retrieval {
   import unfiltered.request.{HttpRequest, GET, HEAD}
-  def unapply[T](r: HttpRequest[T]) =
-    GET.unapply(r).orElse { HEAD.unapply(r) }
+  def unapply[T](r: HttpRequest[T]) = GET.unapply(r).orElse { HEAD.unapply(r) }
 }
 
 object Resources {
@@ -102,11 +101,10 @@ case class JarFileResource(override val url: java.net.URL) extends BaseResource(
   private val connection = url.openConnection().asInstanceOf[java.net.JarURLConnection]
   override val exists = allCatch either {
     import scala.collection.JavaConversions._
-    val jar = connection.getJarFile
     val ef = url.toExternalForm
     val sep = ef.indexOf("!/")
     val path = ef.substring(sep + 2)
-    jar.entries exists { _.getName.replace('\\', '/') == path && !path.endsWith("/") }
+    connection.getJarFile.entries exists { _.getName.replace('\\', '/') == path && !path.endsWith("/") }
   } match {
     case Left(ex) => false
     case Right(result) => result
@@ -155,7 +153,7 @@ object Resource {
  */
 case class Resources(base: java.net.URL,
                      cacheSeconds: Int = 60,
-                     passOnFail: Boolean = false)
+                     passOnFail: Boolean = true)
   extends unfiltered.netty.async.Plan with ServerErrorResponse {
   import Resources._
 
@@ -164,6 +162,7 @@ case class Resources(base: java.net.URL,
 
   import java.util.{Calendar, GregorianCalendar}
   import java.io.FileNotFoundException
+  import java.net.URLDecoder
 
   import org.jboss.netty.channel.ChannelFutureListener
   import org.jboss.netty.handler.codec.http.{HttpHeaders, HttpResponse => NHttpResponse}
@@ -230,9 +229,9 @@ case class Resources(base: java.net.URL,
    * potentially outside of the root of the web app
    */
   private def accessible(uri: String) =
-    (allCatch.opt { java.net.URLDecoder.decode(uri, utf8.name()) }
+    (allCatch.opt { URLDecoder.decode(uri, utf8.name()) }
     orElse {
-      allCatch.opt { java.net.URLDecoder.decode(uri, iso88591.name()) }
+      allCatch.opt { URLDecoder.decode(uri, iso88591.name()) }
     }) match {
       case Some(decoded) =>
         decoded.replace('/', File.separatorChar) match {
