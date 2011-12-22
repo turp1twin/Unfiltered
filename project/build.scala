@@ -38,7 +38,7 @@ object Unfiltered extends Build {
     ls.Plugin.lsSettings ++
     Seq(
     organization := "net.databinder",
-    version := "0.5.3",
+    version := "0.5.4-SNAPSHOT",
     crossScalaVersions := Seq("2.8.0", "2.8.1", "2.8.2",
                               "2.9.0", "2.9.0-1", "2.9.1"),
     scalaVersion := "2.8.2",
@@ -242,24 +242,6 @@ object Unfiltered extends Build {
               "net.liftweb" %% "lift-json" % "2.4-M4"
           }) ++ integrationTestDeps(v))
       )) dependsOn(library)
-
-  lazy val scalate =
-    module("scalate")(
-      settings = Seq(
-        description :=
-          "Scalate response functions",
-        libraryDependencies <++= scalaVersion { v =>
-          val scalateVersion = v match {
-            case "2.8.0" | "2.8.1" => "1.5.2-scala_2.8.1"
-            case _ => "1.5.2"
-          }
-          Seq(
-            "org.fusesource.scalate" % "scalate-core" % scalateVersion,
-            "org.fusesource.scalate" % "scalate-util" % scalateVersion % "test",
-            "org.scala-lang" % "scala-compiler" % v % "test",
-            "org.mockito" % "mockito-core" % "1.8.5" % "test"
-          ) ++ integrationTestDeps(v)}
-        )) dependsOn(library)
 
   lazy val websockets =
     module("netty-websockets")(
