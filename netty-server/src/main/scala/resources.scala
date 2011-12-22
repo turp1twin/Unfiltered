@@ -81,14 +81,14 @@ case class FileResource(theFile: java.io.File) extends BaseResource(theFile.toUR
    */
   def write(secure: Boolean, channel: Channel) = {
     val raf = new RandomAccessFile(theFile, "r")
-    if(secure) channel.write(new ChunkedFile(raf))
+    val len = raf.length
+    if(secure) channel.write(new ChunkedFile(raf, 0, len, 8192))
     else {
       // No encryption - use zero-copy...
-      val reg = new DefaultFileRegion(raf.getChannel, 0, contentLength)
+      val reg = new DefaultFileRegion(raf.getChannel, 0, len)
       val f = channel.write(reg)
-      f.addListener(new ChannelFutureProgressListener {
+      f.addListener(new ChannelFutureListener {
         def operationComplete(f: ChannelFuture) = reg.releaseExternalResources
-        def operationProgressed(f: ChannelFuture, amt: Long, cur: Long, total: Long) = {}
       })
       f
     }

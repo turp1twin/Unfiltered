@@ -36,6 +36,9 @@ object JarResourceSpec extends unfiltered.spec.netty.Served {
     "respond with a valid file" in {
       http(host / "assets" / "foo.css" as_str) must_== ("* { margin:0; }")
     }
+    "respond with a valid text file" in {
+      http(host / "assets" / "foo.txt" as_str).trim must_== ("said plainly")
+    }
     "respond with an expected Content-Type" in {
       def mustHaveType(path: String, `type` : String) =
         http(host / path >:> {
