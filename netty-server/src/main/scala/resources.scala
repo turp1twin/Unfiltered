@@ -52,22 +52,19 @@ trait Resource {
   def path: String = ""
   def isFile = false
   def write(secure: Boolean, channel: Channel): ChannelFuture
-  def /(path: String): Resource
-}
-
-abstract class BaseResource(val url: java.net.URL) extends Resource {
-  override def path = url.toExternalForm
-  override def contentType = Mimes(path)
-  def /(path: String) = Resource(url, path)
 }
 
 case class EmptyResource() extends Resource {
-  override def /(path: String) = this
   def write(secure: Boolean, channel: Channel) =
     new FailedChannelFuture(channel, new IllegalStateException("Cannot write empty resource"))
 }
 
-case class FileResource(theFile: java.io.File) extends BaseResource(theFile.toURI.toURL) {
+abstract class UrlResource(val url: java.net.URL) extends Resource {
+  override def path = url.toExternalForm
+  override def contentType = Mimes(path)
+}
+
+case class FileResource(theFile: java.io.File) extends UrlResource(theFile.toURI.toURL) {
   import org.jboss.netty.handler.stream.ChunkedFile
 
   override def exists = theFile.exists && !theFile.isHidden
@@ -95,7 +92,7 @@ case class FileResource(theFile: java.io.File) extends BaseResource(theFile.toUR
   }
 }
 
-case class JarFileResource(override val url: java.net.URL) extends BaseResource(url) {
+case class JarFileResource(override val url: java.net.URL) extends UrlResource(url) {
   import org.jboss.netty.handler.stream.ChunkedStream
 
   private val connection = url.openConnection().asInstanceOf[java.net.JarURLConnection]
@@ -118,9 +115,8 @@ case class JarFileResource(override val url: java.net.URL) extends BaseResource(
   def write(secure: Boolean, channel: Channel) = inputStream match {
     case Some(is) =>
       val f = channel.write(new ChunkedStream(is))
-      f.addListener(new ChannelFutureProgressListener {
+      f.addListener(new ChannelFutureListener {
         def operationComplete(f: ChannelFuture) = allCatch { is.close }
-        def operationProgressed(f: ChannelFuture, amt: Long, cur: Long, total: Long) = {}
       })
       f
     case _ => new FailedChannelFuture(channel, new IllegalStateException("Cannot write, no InputStream"))
@@ -131,8 +127,8 @@ object Resource {
   def apply(base: java.net.URL): Resource = {
     Option(base) match {
       case Some(url) =>
-        val ef = url.toExternalForm
         try {
+          val ef = url.toExternalForm
           if (ef startsWith  "jar:file:") JarFileResource(base)
           else if (ef startsWith "file:") FileResource(new File(base.getFile))
           else EmptyResource()
