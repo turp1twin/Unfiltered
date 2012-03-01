@@ -38,17 +38,41 @@ object Unfiltered extends Build {
     ls.Plugin.lsSettings ++
     Seq(
     organization := "net.databinder",
-    version := "0.5.5-SNAPSHOT",
+    version := "0.6.0-SNAPSHOT",
     crossScalaVersions := Seq("2.8.0", "2.8.1", "2.8.2",
                               "2.9.0", "2.9.0-1", "2.9.1"),
     scalaVersion := "2.9.1",
     //publishTo := Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/"),
 	  publishTo := Some("ci-synchrony.phx.axway.int-snapshots" at "http://ci-synchrony.phx.axway.int/artifactory/manual-phx-snapshots"),
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
-    scalacOptions ++= Seq("-Xcheckinit", "-encoding", "utf8"),
+    scalacOptions ++= Seq("-Xcheckinit", "-encoding", "utf8", "-deprecation", "-unchecked"),
     parallelExecution in Test := false, // :( test servers collide on same port
     homepage :=
-      Some(new java.net.URL("http://unfiltered.databinder.net/"))
+      Some(new java.net.URL("http://unfiltered.databinder.net/")),
+    publishMavenStyle := true,
+    publishTo :=
+      Some("releases" at
+           "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
+    publishArtifact in Test := false,
+    licenses := Seq("MIT" -> url("http://www.opensource.org/licenses/MIT")),
+    pomExtra := (
+      <scm>
+        <url>git@github.com:unfiltered/unfiltered.git</url>
+        <connection>scm:git:git@github.com:unfiltered/unfiltered.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>n8han</id>
+          <name>Nathan Hamblen</name>
+          <url>http://twitter.com/n8han</url>
+        </developer>
+        <developer>
+          <id>softprops</id>
+          <name>Doug Tangren</name>
+          <url>http://twitter.com/softprops</url>
+        </developer>
+      </developers>)
+
   )
 
   def srcPathSetting(projectId: String, rootPkg: String) = {
@@ -153,8 +177,8 @@ object Unfiltered extends Build {
 
   lazy val util = module("util")(
     settings = Seq(
-      // https://github.com/harrah/xsbt/issues/76
-      publishArtifact in packageDoc := false
+      // https://github.com/harrah/xsbt/issues/85#issuecomment-1687483
+      unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist"))
     ))
 
   lazy val jetty =
@@ -196,7 +220,7 @@ object Unfiltered extends Build {
         unmanagedClasspath in (local("netty"), Test) <++=
           (fullClasspath in (local("spec"), Compile)),
         libraryDependencies <++= scalaVersion(v =>
-          ("io.netty" % "netty" % "3.3.0.Final" withSources()) +:
+          ("io.netty" % "netty" % "3.3.1.Final" withSources()) +:
           integrationTestDeps(v)
         )
       )) dependsOn(library)
@@ -235,13 +259,8 @@ object Unfiltered extends Build {
            fullClasspath in (local("filter"), Compile)) map { (s, f) =>
              s ++ f
           },
-        libraryDependencies <++= scalaVersion(v => Seq(
-          v.split('.').toList match {
-            case "2" :: "8" :: "2" :: _ =>
-              "net.liftweb" % "lift-json_2.8.1" % "2.4-M4"
-            case _ =>
-              "net.liftweb" %% "lift-json" % "2.4-M4"
-          }) ++ integrationTestDeps(v))
+        libraryDependencies <++= scalaVersion(
+          Seq("net.liftweb" %% "lift-json" % "2.4") ++ integrationTestDeps(_))
       )) dependsOn(library)
 
   lazy val websockets =
