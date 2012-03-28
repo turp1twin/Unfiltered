@@ -5,7 +5,7 @@ import ls.Plugin.LsKeys
 object Shared {
 
   val servletApiDep = "javax.servlet" % "servlet-api" % "2.3" % "provided"
-  val jettyVersion = "7.6.0.v20120127"
+  val jettyVersion = "7.6.1.v20120215"
   val continuation = "org.eclipse.jetty" % "jetty-continuation" % jettyVersion % "compile"
 
   def specsDep(sv: String) =
@@ -16,7 +16,7 @@ object Shared {
       case _ => sys.error("specs not supported for scala version %s" format sv)
     }
 
-  val dispatchVersion = "0.8.6"
+  val dispatchVersion = "0.8.8"
   def dispatchDeps =
     "net.databinder" %% "dispatch-mime" % dispatchVersion ::
     "net.databinder" %% "dispatch-http" % dispatchVersion :: Nil
@@ -38,12 +38,12 @@ object Unfiltered extends Build {
     ls.Plugin.lsSettings ++
     Seq(
     organization := "net.databinder",
-    version := "0.6.0-SNAPSHOT",
+    version := "0.7.0-SNAPSHOT",
     crossScalaVersions := Seq("2.8.0", "2.8.1", "2.8.2",
-                              "2.9.0", "2.9.0-1", "2.9.1"),
+                              "2.9.0", "2.9.0-1", "2.9.1", "2.9.1-1"),
     scalaVersion := "2.9.1",
     //publishTo := Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/"),
-	  publishTo := Some("ci-synchrony.phx.axway.int-snapshots" at "http://ci-synchrony.phx.axway.int/artifactory/manual-phx-snapshots"),
+	publishTo := Some("ci-synchrony.phx.axway.int-snapshots" at "http://ci-synchrony.phx.axway.int/artifactory/manual-phx-snapshots"),
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
     scalacOptions ++= Seq("-Xcheckinit", "-encoding", "utf8", "-deprecation", "-unchecked"),
     parallelExecution in Test := false, // :( test servers collide on same port
