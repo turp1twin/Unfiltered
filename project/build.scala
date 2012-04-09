@@ -5,7 +5,8 @@ import ls.Plugin.LsKeys
 object Shared {
 
   val servletApiDep = "javax.servlet" % "servlet-api" % "2.3" % "provided"
-  val jettyVersion = "7.6.1.v20120215"
+  //val jettyVersion = "7.6.2.v20120308"
+  val jettyVersion = "7.6.0.v20120127"
   val continuation = "org.eclipse.jetty" % "jetty-continuation" % jettyVersion % "compile"
 
   def specsDep(sv: String) =
