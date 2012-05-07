@@ -8,3 +8,9 @@ project/plugins/project/
 .idea_modules
 \#*\#
 *~
+.ensime
+.classpath
+.project
+.settings
+.cache
+upload-test-out.txt
